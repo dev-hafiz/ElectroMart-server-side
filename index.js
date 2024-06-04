@@ -23,6 +23,18 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+
+    //database
+    const ElectroMartDB = client.db("ElectroMartDB");
+    const productCollection = ElectroMartDB.collection("products");
+
+    //Get Methods for all products
+    app.get("/products", async (req, res) => {
+      const user = productCollection.find();
+      const result = await user.toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged to Server Successfully");
   } finally {
