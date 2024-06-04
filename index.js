@@ -27,6 +27,7 @@ async function run() {
     //database
     const ElectroMartDB = client.db("ElectroMartDB");
     const productCollection = ElectroMartDB.collection("products");
+    const userCollection = ElectroMartDB.collection("users");
 
     //* PRODUCT ROUTES CRUD START
 
@@ -83,6 +84,21 @@ async function run() {
         updateProduct,
         options
       );
+      res.send(result);
+    });
+
+    //* USER COLLECTION
+    //! Save user information in userCollection after login
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const query = { email: user.email };
+      const isUserExist = await userCollection.findOne(query);
+
+      if (isUserExist) {
+        return res.send({ message: "user already exist in database" });
+      }
+      const result = await userCollection.insertOne(user);
       res.send(result);
     });
 
