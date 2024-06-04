@@ -28,10 +28,19 @@ async function run() {
     const ElectroMartDB = client.db("ElectroMartDB");
     const productCollection = ElectroMartDB.collection("products");
 
-    //Get Methods for all products
+    //* PRODUCT ROUTES CRUD START
+
+    //Get Methods: for all products
     app.get("/products", async (req, res) => {
       const user = productCollection.find();
       const result = await user.toArray();
+      res.send(result);
+    });
+
+    //Post Method: for add product to DB
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      const result = await productCollection.insertOne(product);
       res.send(result);
     });
 
