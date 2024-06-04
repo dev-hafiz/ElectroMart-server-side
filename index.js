@@ -37,6 +37,14 @@ async function run() {
       res.send(result);
     });
 
+    //Single product data load by id
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(query);
+      res.send(result);
+    });
+
     //Post Method: for add product to DB
     app.post("/products", async (req, res) => {
       const product = req.body;
@@ -47,9 +55,34 @@ async function run() {
     //Delete Method-> Delete single product
     app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await productCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //Put-> Update Methods
+    app.patch("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const product = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateProduct = {
+        $set: {
+          title: product.title,
+          company: product.company,
+          category: product.category,
+          del_price: product.del_price,
+          image: product.image,
+          off_sale: product.off_sale,
+          price: product.price,
+          ratings: product.ratings,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updateProduct,
+        options
+      );
       res.send(result);
     });
 
