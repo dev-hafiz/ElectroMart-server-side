@@ -91,7 +91,6 @@ async function run() {
     //! Save user information in userCollection after login
     app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log(user);
       const query = { email: user.email };
       const isUserExist = await userCollection.findOne(query);
 
@@ -115,6 +114,31 @@ async function run() {
       const query = { email };
       const reselt = await userCollection.findOne(query);
       res.send(reselt);
+    });
+
+    //!Put --> Update user : (CRUD)
+    app.patch("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const user = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateInfo = {
+        $set: {
+          displayName: user.displayName,
+          email: user.email,
+          phone: user.phone,
+          photoUrl: user.photoUrl,
+          gender: user.gender,
+          address: user.address,
+        },
+      };
+      const result = await userCollection.updateOne(
+        filter,
+        updateInfo,
+        options
+      );
+      res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
