@@ -3,6 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const cors = require("cors");
 const app = express();
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 
 //MiddleWare
@@ -28,6 +29,42 @@ async function run() {
     const ElectroMartDB = client.db("ElectroMartDB");
     const productCollection = ElectroMartDB.collection("products");
     const userCollection = ElectroMartDB.collection("users");
+
+    //*JWT Token generate function
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "10s",
+      });
+
+      res.send({ token });
+    });
+
+    //JWT Verify Func
+    const verifyJwt = (req, res, next) => {
+      // console.log(req.headers.authorization)
+      const authorization = req.headers.authorization;
+      console.log(authorization);
+      if (!authorization) {
+        return res
+          .status(401)
+          .send({ error: true, message: "unauthorized access" });
+      }
+
+      const token = authorization.split(" ")[1];
+      // console.log(token)
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+        if (error) {
+          return res
+            .status(401)
+            .send({ error: true, message: "unauthorized access" });
+        }
+
+        req.decoded = decoded;
+        next();
+      });
+    };
 
     //* PRODUCT ROUTES CRUD START
 
@@ -102,14 +139,14 @@ async function run() {
     });
 
     //!Get --> Read : (CRUD) (Default all get)
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyJwt, async (req, res) => {
       const cursor = userCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
     //!Get --> Single User : (specific email)
-    app.get("/users/:email", async (req, res) => {
+    app.get("/users/:email", verifyJwt, async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const reselt = await userCollection.findOne(query);
